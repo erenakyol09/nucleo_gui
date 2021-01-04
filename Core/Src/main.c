@@ -56,14 +56,20 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-#define buffer_size 100
 
-  char rx_buffer[buffer_size];
+	int kk=0;
+	int jj=0;
+	char myFilterBuf[50];
+	char newBuffer[30];
+	char newBuffer2[30];
+  char rx_buffer[50];
 	char rx_bb[2];
+	int numDetec = 0;
+	int ll=0;
 	
 	char packet[50];
 	int  ff=0;
-	char myFilterBuf[50];
+
   char ax = 0;	
 	char tx_buffer[20];
 	
@@ -118,7 +124,7 @@ int main(void)
   MX_GPIO_Init();
   MX_USART3_UART_Init();
   /* USER CODE BEGIN 2 */
-	int j=0;
+	
 
   /* USER CODE END 2 */
 
@@ -126,33 +132,88 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+		
+		
+		//readmodB_Packets(&huart3,rx_buffer);
 		//sendmodB_Packets(&huart3,power,voltage,current,resistor);
 		
 //		ax=readByte();		
+		readString(&huart3,rx_buffer);	
 		
-		for(int i=0;i<=30;i++)
-		{		
-			readString(&huart3,rx_buffer);	
-			if(rx_buffer[i]=='B')
+		// B detecter
+		for(int i=0;i<=20;i++)
+		{
+			if(rx_buffer[i] == 'B')
 			{
-				rx_bb[j]=i;				
-				j++;	
-				ff = rx_bb[0] - rx_bb[1];
-				if(ff<0)
-				{	
-					ff = ff*-1;
-					for(int k=0;k<ff;k++)
-					{
-						myFilterBuf[k] = rx_buffer[rx_bb[0]+k];
-						sendmodB_Packets(&huart3,power,voltage,current,resistor);
-					}								
-				}
-			}	
-		
-			if(j==2)
-				j=0;		
+				jj = i;
+				break;
+			}				
 		}
 		
+		ll = 8+10*charToint(rx_buffer[2+jj])+charToint(rx_buffer[3+jj]);
+		
+		for(int i=0;i<30;i++)
+		{
+			newBuffer[i] = rx_buffer[i+jj];
+			if(i==ll || i>=ll)
+				newBuffer[i] = 0;
+		}
+		
+		if(newBuffer[0]=='B')
+		{
+			if(newBuffer[1]=='P')
+			{
+				receiveAsciiPackets(newBuffer,packet);
+				HAL_GPIO_WritePin(GPIOB,GPIO_PIN_7,GPIO_PIN_SET);
+				sendmodB_Packets(&huart3,power,voltage,current,resistor);
+			}
+			
+			if(newBuffer[1]=='I')
+			{
+				//receiveAsciiPackets(newBuffer,packet);
+				HAL_GPIO_WritePin(GPIOB,GPIO_PIN_7,GPIO_PIN_RESET);
+			}
+		}
+		
+//		while(1)
+//		{
+//			myFilterBuf[kk] = rx_buffer[numDetec];
+//			kk++;
+//			if(rx_buffer[kk]=='B')
+//				break;
+//		}		
+
+//		for(int i=0;i<20;i++)
+//			{
+//				rx_buffer[i] = 0;
+//			}	
+//		
+
+	
+		
+		 
+//		for(int i=0;i<=30;i++)
+//		{		
+//			if(rx_buffer[i]=='B')
+//			{
+//				rx_bb[j]=i;				
+//				j++;	
+//				ff = rx_bb[0] - rx_bb[1];
+//				if(ff<0)
+//				{	
+//					ff = ff*-1;
+//					for(int k=0;k<ff;k++)
+//					{
+//						myFilterBuf[k] = rx_buffer[rx_bb[0]+k];
+//						//sendmodB_Packets(&huart3,power,voltage,current,resistor);
+//					}								
+//				}
+//			}	
+//		
+//			if(j==2)
+//				j=0;		
+//		}
+//		
 		
 
 

@@ -8,7 +8,7 @@ kolay olmasi amaclanmistir.
 	
 	*gui'den gelen paket yapisi                    -->  paket sayisi + paketler + crc(low 2 byte)
 	
-	*gui'ye gonderilen paket yapisi                -->  "A,B,C" + paket sayisi + paketler + crc(low 2 byte)
+	*gui'ye gonderilen paket yapisi                -->  "A,B,C" + paket sayisi + paketler + checksum(low 2 byte)
 		
 */
 
@@ -27,7 +27,7 @@ void readString(UART_HandleTypeDef* huart, char buffer[20]);
 void writeString(UART_HandleTypeDef *huart,char buffer[20]);
 
 //guiden gelen paketleri okuma
-void receiveAsciiPackets(UART_HandleTypeDef* huart, char buffer[20],char packet[20]);
+void receiveAsciiPackets(char buffer[50],char packet[50]);
 
 //guiye  A modundaki paketlerin gonderimi
 void sendmodA_Packets(UART_HandleTypeDef *huart,int number_message,char buffer[number_message][100]);

@@ -13,22 +13,24 @@
 #include <stdio.h>
 #include <math.h>
 
-#define buffer_size 100
+#define buffer_size 50
 
-char controlBuffer[20];
-char crcBuffer[4];
-char pData_gui[1];
+char controlBuffer[20] = "";
+char crcBuffer[4]      = "";
+char pData_gui[1]      = "";
 
-char sendCrc[1];
-char sendCrc2[1];
-char sendCrc3[1];
-char sendCrc4[1];
+char sendCrc[1]  = "";
+char sendCrc2[1] = "";
+char sendCrc3[1] = "";
+char sendCrc4[1] = "";
 
-char reciveCrc[1];
-char reciveCrc2[1];
-char reciveCrc3[1];
-char reciveCrc4[1];
+char reciveCrc[1]  = "";
+char reciveCrc2[1] = "";
+char reciveCrc3[1] = "";
+char reciveCrc4[1] = "";
 
+
+	
 char sendmodABuf[20][100];
 char sendmodBBuf[20][50];
 char sendmodCBuf[20][50];
@@ -40,7 +42,7 @@ float myBfloatValues[4][20];
 float myCfloatValues[7][20];
 
 
-
+int ii         = 0;
 int crc_length = 0;
 int length 		 = 0;
 int length2 	 = 0;
@@ -63,7 +65,7 @@ char readByte(UART_HandleTypeDef* huart)
 //byte gonderim
 void writeByte(UART_HandleTypeDef* huart, char pData_gui)
 {
-	HAL_UART_Transmit(huart, (uint8_t*)&pData_gui, 1, 1);
+	HAL_UART_Transmit(huart, (uint8_t*)&pData_gui, 1, 0xFFFF);
 }
 //string okuma
 void readString(UART_HandleTypeDef* huart, char buffer[buffer_size])
@@ -77,37 +79,36 @@ void writeString(UART_HandleTypeDef *huart,char Tx_buffer[50])
 	HAL_UART_Transmit(huart,(uint8_t*)sendString,sprintf((char *)sendString,"%s",Tx_buffer),10); 	
 }	
 //guiden gelen paketleri okuma
-void receiveAsciiPackets(UART_HandleTypeDef* huart, char buffer[buffer_size],char packet[20])
+void receiveAsciiPackets(char buffer[buffer_size],char packet[20])
 {	
-		for(int i=0;i<=20;i++)
+	for(int i=0;i<=20;i++)
 	{
-		buffer[i] 			 = 0;
+		packet[i]        = 0;
 		controlBuffer[i] = 0;		
 		crcBuffer[i]		 = 0;			
-		packet[i]  			 = 0;
 	}
-	length	         = 0;
-	crc = 0;
-	readString(huart,buffer);	
-	length  = charToint(buffer[0]);
-	length2 = charToint(buffer[1]);
+	length = 0;
+	crc    = 0;
+
+	length  = charToint(buffer[2]);
+	length2 = charToint(buffer[3]);
 	
 	length = 10*length + length2;
 	
 	//paketler controlBuffer adli arraye ekleniyor	
-	for(int i=2;i<=length+1;i++)
+	for(int i=4;i<=length+5;i++)
 	{
-		controlBuffer[i-2] = buffer[i];
+		controlBuffer[i-4] = buffer[i-2];
 	}	
 	//gelen crc low 2 byte
 	for(int i=0;i<=3;i++)
 	{
-		crcBuffer[i] = buffer[length+2+i];
+		crcBuffer[i] = buffer[length+4+i];
 	}
 	//crc toplama
-	for(int i=0;i<length;i++)
+	for(int i=0;i<strlen(controlBuffer)-2;i++)
 	{
-		crc = crc + controlBuffer[i];
+		crc = crc + controlBuffer[i+2];
 	}
 	sprintf(reciveCrc ,"%x",crc & 0xF000);
 	sprintf(reciveCrc2,"%x",crc & 0x0F00);
@@ -116,9 +117,10 @@ void receiveAsciiPackets(UART_HandleTypeDef* huart, char buffer[buffer_size],cha
 	// crc karsilastirma
 	if(reciveCrc[0] == crcBuffer[0] && reciveCrc2[0] == crcBuffer[1] && reciveCrc3[0] == crcBuffer[2] && reciveCrc4[0] == crcBuffer[3])
 	{
+		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0|GPIO_PIN_14, GPIO_PIN_SET);
 		for(int i=0;i<length;i++)
 		{
-			packet[i+1] = controlBuffer[i];
+			packet[i+1] = controlBuffer[i+2];
 		}		
 	}
 }
@@ -336,7 +338,7 @@ float packetsTofloatValue(UART_HandleTypeDef* huart, char buffer[20],char packet
 {
 	float value = 0;
 	char myPacket[20];
-	receiveAsciiPackets(huart,buffer,packet);
+	receiveAsciiPackets(buffer,packet);
 	for(int i=0;i<19;i++)
 	{
 		myPacket[i] = packet[i+1];
