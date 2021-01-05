@@ -92,6 +92,8 @@ void SystemClock_Config(void);
 	float voltage  = 0;
 	float current  = 2;
 	float resistor = 7.5;
+	
+	
 /* USER CODE END 0 */
 
 /**
@@ -124,7 +126,7 @@ int main(void)
   MX_GPIO_Init();
   MX_USART3_UART_Init();
   /* USER CODE BEGIN 2 */
-	
+
 
   /* USER CODE END 2 */
 
@@ -134,12 +136,15 @@ int main(void)
   {
 		
 		
+
 		//readmodB_Packets(&huart3,rx_buffer);
 		//sendmodB_Packets(&huart3,power,voltage,current,resistor);
 		
 //		ax=readByte();		
-		readString(&huart3,rx_buffer);	
 		
+		
+		readString(&huart3,rx_buffer);
+		//USART3 -> CR1 |= 0x00000000;
 		// B detecter
 		for(int i=0;i<=20;i++)
 		{
@@ -165,7 +170,7 @@ int main(void)
 			{
 				receiveAsciiPackets(newBuffer,packet);
 				HAL_GPIO_WritePin(GPIOB,GPIO_PIN_7,GPIO_PIN_SET);
-				sendmodB_Packets(&huart3,power,voltage,current,resistor);
+				sendmodB_Packets(&huart3,charTofloat(packet[1]),voltage,current,resistor);
 			}
 			
 			if(newBuffer[1]=='I')
@@ -175,6 +180,10 @@ int main(void)
 			}
 		}
 		
+		if(rx_buffer[11]=='A' && rx_buffer[12]=='A' && rx_buffer[13]=='A' && rx_buffer[14]=='A' && rx_buffer[15]=='A' && rx_buffer[16]=='A')
+			HAL_NVIC_SystemReset();
+		
+
 //		while(1)
 //		{
 //			myFilterBuf[kk] = rx_buffer[numDetec];

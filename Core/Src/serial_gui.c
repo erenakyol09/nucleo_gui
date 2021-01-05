@@ -65,7 +65,7 @@ char readByte(UART_HandleTypeDef* huart)
 //byte gonderim
 void writeByte(UART_HandleTypeDef* huart, char pData_gui)
 {
-	HAL_UART_Transmit(huart, (uint8_t*)&pData_gui, 1, 0xFFFF);
+	HAL_UART_Transmit(huart, (uint8_t*)&pData_gui, 1, 1);
 }
 //string okuma
 void readString(UART_HandleTypeDef* huart, char buffer[buffer_size])
@@ -242,7 +242,7 @@ void sendmodB_Packets(UART_HandleTypeDef *huart,float power,float voltage,float 
 			crc =  0;
 		}
 		
-		for(int i=0;i<4;i++)
+		for(int i=0;i<1;i++)
 			{
 				for(int j=0;j<=strlen(sendmodBpackets[i])-1;j++)
 					{
