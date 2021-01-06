@@ -42,7 +42,7 @@ float myBfloatValues[4][20];
 float myCfloatValues[7][20];
 
 
-int ii         = 0;
+
 int crc_length = 0;
 int length 		 = 0;
 int length2 	 = 0;
@@ -248,7 +248,6 @@ void sendmodB_Packets(UART_HandleTypeDef *huart,float power,float voltage,float 
 					{
 						writeByte(huart,sendmodBpackets[i][j]);
 					}		
-				//writeByte(huart,'\n');	
 			}	
 }	
 //guiye  C modundaki paketlerin gonderimi

@@ -11,6 +11,8 @@ kolay olmasi amaclanmistir.
 	*gui'ye gonderilen paket yapisi                -->  "A,B,C" + paket sayisi + paketler + checksum(low 2 byte)
 		
 */
+#ifndef __SERIAL_GUI_H
+#define __SERIAL_GUI_H
 
 #include "stm32f7xx_hal.h"
 
@@ -50,5 +52,5 @@ float charTofloat(char x);
 // string - > float
 float stringTofloat(char buffer[20]);
 
-
+#endif 
 

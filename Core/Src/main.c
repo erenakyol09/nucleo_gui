@@ -188,16 +188,8 @@ int main(void)
 			sendmodC_Packets(&huart3,P,Vrms,Irms,pf,f,dcCur,dcVol);
 		}
 		
-		// software reset
-		for(int i=0;i<=50;i++)
-		{
-			if(rx_buffer[i]=='!')
-			{
-				HAL_NVIC_SystemReset();
-				break;
-			}
-		}
-		
+		HAL_Delay(1);
+		HAL_NVIC_SystemReset();
 
     /* USER CODE END WHILE */
 
