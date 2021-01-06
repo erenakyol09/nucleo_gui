@@ -65,7 +65,7 @@ char readByte(UART_HandleTypeDef* huart)
 //byte gonderim
 void writeByte(UART_HandleTypeDef* huart, char pData_gui)
 {
-	HAL_UART_Transmit(huart, (uint8_t*)&pData_gui, 1, 1);
+	HAL_UART_Transmit(huart, (uint8_t*)&pData_gui, 1, 1000);
 }
 //string okuma
 void readString(UART_HandleTypeDef* huart, char buffer[buffer_size])
@@ -117,7 +117,6 @@ void receiveAsciiPackets(char buffer[buffer_size],char packet[20])
 	// crc karsilastirma
 	if(reciveCrc[0] == crcBuffer[0] && reciveCrc2[0] == crcBuffer[1] && reciveCrc3[0] == crcBuffer[2] && reciveCrc4[0] == crcBuffer[3])
 	{
-		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0|GPIO_PIN_14, GPIO_PIN_SET);
 		for(int i=0;i<length;i++)
 		{
 			packet[i+1] = controlBuffer[i+2];
@@ -238,17 +237,18 @@ void sendmodB_Packets(UART_HandleTypeDef *huart,float power,float voltage,float 
 			sendmodBpackets[i][4+strlen(sendmodBBuf[i])] = sendCrc[0];
 			sendmodBpackets[i][5+strlen(sendmodBBuf[i])] = sendCrc2[0];
 			sendmodBpackets[i][6+strlen(sendmodBBuf[i])] = sendCrc3[0];
-			sendmodBpackets[i][7+strlen(sendmodBBuf[i])] = sendCrc4[0];			
+			sendmodBpackets[i][7+strlen(sendmodBBuf[i])] = sendCrc4[0];	
+      sendmodBpackets[i][8+strlen(sendmodBBuf[i])] = '\n';				
 			crc =  0;
 		}
 		
-		for(int i=0;i<1;i++)
+		for(int i=0;i<4;i++)
 			{
 				for(int j=0;j<=strlen(sendmodBpackets[i])-1;j++)
 					{
 						writeByte(huart,sendmodBpackets[i][j]);
 					}		
-				writeByte(huart,'\n');	
+				//writeByte(huart,'\n');	
 			}	
 }	
 //guiye  C modundaki paketlerin gonderimi
@@ -320,7 +320,8 @@ void sendmodC_Packets(UART_HandleTypeDef *huart,float P,float Vrms,float Irms,fl
 			sendmodCpackets[i][4+strlen(sendmodCBuf[i])] = sendCrc[0];
 			sendmodCpackets[i][5+strlen(sendmodCBuf[i])] = sendCrc2[0];
 			sendmodCpackets[i][6+strlen(sendmodCBuf[i])] = sendCrc3[0];
-			sendmodCpackets[i][7+strlen(sendmodCBuf[i])] = sendCrc4[0];			
+			sendmodCpackets[i][7+strlen(sendmodCBuf[i])] = sendCrc4[0];
+			sendmodCpackets[i][8+strlen(sendmodCBuf[i])] = '\n';						
 			crc =  0;
 		}
 		
@@ -330,7 +331,6 @@ void sendmodC_Packets(UART_HandleTypeDef *huart,float P,float Vrms,float Irms,fl
 					{
 						writeByte(huart,sendmodCpackets[i][j]);
 					}		
-				writeByte(huart,'\n');	
 			}		
 }
 //guiden gelen paketleri temel aritmetik operatorlerle kullanabilmek icin floata donusturme

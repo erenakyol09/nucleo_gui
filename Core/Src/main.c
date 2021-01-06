@@ -59,24 +59,16 @@ void SystemClock_Config(void);
 
 	int kk=0;
 	int jj=0;
-	char myFilterBuf[50];
 	char newBuffer[30];
-	char newBuffer2[30];
   char rx_buffer[50];
-	char rx_bb[2];
 	int numDetec = 0;
 	int ll=0;
 	
 	char packet[50];
-	int  ff=0;
 
-  char ax = 0;	
-	char tx_buffer[20];
 	
 	// A mod mesaj hazirlama 
 	char messagges[10][100] = {"Model: Arm Cortex-M4","Version: stm32f767ZI"};
-	
-	float myfloatValue = 0;
 	
 	// C komutu icin senaryo
 	float P     = 200;
@@ -88,10 +80,10 @@ void SystemClock_Config(void);
 	float dcVol = 30;
 	
 	// B komutu icin senaryo
-	float power    = 0;
-	float voltage  = 0;
-	float current  = 2;
-	float resistor = 7.5;
+	float power    = 12;
+	float voltage  = 47;
+	float current  = 22;
+	float resistor = 75;
 	
 	
 /* USER CODE END 0 */
@@ -134,18 +126,18 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-		
-		
-
-		//readmodB_Packets(&huart3,rx_buffer);
-		//sendmodB_Packets(&huart3,power,voltage,current,resistor);
-		
-//		ax=readByte();		
-		
-		
 		readString(&huart3,rx_buffer);
-		//USART3 -> CR1 |= 0x00000000;
-		// B detecter
+		
+		// A 		
+		if(rx_buffer[0] == 'A')
+		{	
+			HAL_GPIO_WritePin(GPIOB,GPIO_PIN_0,GPIO_PIN_SET);
+			sendmodA_Packets(&huart3,2,messagges);
+			rx_buffer[0] = '!';
+		}
+
+		
+		// B 
 		for(int i=0;i<=20;i++)
 		{
 			if(rx_buffer[i] == 'B')
@@ -166,66 +158,46 @@ int main(void)
 		
 		if(newBuffer[0]=='B')
 		{
+			HAL_GPIO_WritePin(GPIOB,GPIO_PIN_7,GPIO_PIN_SET);
 			if(newBuffer[1]=='P')
 			{
-				receiveAsciiPackets(newBuffer,packet);
-				HAL_GPIO_WritePin(GPIOB,GPIO_PIN_7,GPIO_PIN_SET);
+				receiveAsciiPackets(newBuffer,packet);				
 				sendmodB_Packets(&huart3,charTofloat(packet[1]),voltage,current,resistor);
 			}
 			
+			if(newBuffer[1]=='V')
+			{
+				receiveAsciiPackets(newBuffer,packet);				
+				sendmodB_Packets(&huart3,power,charTofloat(packet[1]),current,resistor);
+			}
 			if(newBuffer[1]=='I')
 			{
-				//receiveAsciiPackets(newBuffer,packet);
-				HAL_GPIO_WritePin(GPIOB,GPIO_PIN_7,GPIO_PIN_RESET);
+				receiveAsciiPackets(newBuffer,packet);				
+				sendmodB_Packets(&huart3,power,voltage,charTofloat(packet[1]),resistor);
+			}
+			if(newBuffer[1]=='R')
+			{
+				receiveAsciiPackets(newBuffer,packet);				
+				sendmodB_Packets(&huart3,power,voltage,current,charTofloat(packet[1]));
+			}
+		}	
+		
+		// C		
+		if(rx_buffer[0] == 'C')
+		{	
+			sendmodC_Packets(&huart3,P,Vrms,Irms,pf,f,dcCur,dcVol);
+		}
+		
+		// software reset
+		for(int i=0;i<=50;i++)
+		{
+			if(rx_buffer[i]=='!')
+			{
+				HAL_NVIC_SystemReset();
+				break;
 			}
 		}
 		
-		if(rx_buffer[11]=='A' && rx_buffer[12]=='A' && rx_buffer[13]=='A' && rx_buffer[14]=='A' && rx_buffer[15]=='A' && rx_buffer[16]=='A')
-			HAL_NVIC_SystemReset();
-		
-
-//		while(1)
-//		{
-//			myFilterBuf[kk] = rx_buffer[numDetec];
-//			kk++;
-//			if(rx_buffer[kk]=='B')
-//				break;
-//		}		
-
-//		for(int i=0;i<20;i++)
-//			{
-//				rx_buffer[i] = 0;
-//			}	
-//		
-
-	
-		
-		 
-//		for(int i=0;i<=30;i++)
-//		{		
-//			if(rx_buffer[i]=='B')
-//			{
-//				rx_bb[j]=i;				
-//				j++;	
-//				ff = rx_bb[0] - rx_bb[1];
-//				if(ff<0)
-//				{	
-//					ff = ff*-1;
-//					for(int k=0;k<ff;k++)
-//					{
-//						myFilterBuf[k] = rx_buffer[rx_bb[0]+k];
-//						//sendmodB_Packets(&huart3,power,voltage,current,resistor);
-//					}								
-//				}
-//			}	
-//		
-//			if(j==2)
-//				j=0;		
-//		}
-//		
-		
-
-
 
     /* USER CODE END WHILE */
 
