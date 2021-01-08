@@ -20,8 +20,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "usart.h"
-#include "gpio.h"	
-
+#include "gpio.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -50,6 +49,7 @@
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
+
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -80,12 +80,11 @@ void SystemClock_Config(void);
 	float dcVol = 30;
 	
 	// B komutu icin senaryo
-	float power    = 12;
-	float voltage  = 47;
-	float current  = 22;
-	float resistor = 75;
-	
-	
+	float power    = 0;
+	float voltage  = 0;
+	float current  = 0;
+	float resistor = 0;
+
 /* USER CODE END 0 */
 
 /**
@@ -118,7 +117,7 @@ int main(void)
   MX_GPIO_Init();
   MX_USART3_UART_Init();
   /* USER CODE BEGIN 2 */
-
+	
 
   /* USER CODE END 2 */
 
@@ -126,6 +125,7 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+		
 		readString(&huart3,rx_buffer);
 		
 		// A 		
@@ -162,34 +162,35 @@ int main(void)
 			if(newBuffer[1]=='P')
 			{
 				receiveAsciiPackets(newBuffer,packet);				
-				sendmodB_Packets(&huart3,charTofloat(packet[1]),voltage,current,resistor);
+				sendmodB_Packets(&huart3,power,voltage,current,resistor);
 			}
 			
 			if(newBuffer[1]=='V')
 			{
 				receiveAsciiPackets(newBuffer,packet);				
-				sendmodB_Packets(&huart3,power,charTofloat(packet[1]),current,resistor);
+				sendmodB_Packets(&huart3,power,voltage,current,resistor);
 			}
 			if(newBuffer[1]=='I')
 			{
 				receiveAsciiPackets(newBuffer,packet);				
-				sendmodB_Packets(&huart3,power,voltage,charTofloat(packet[1]),resistor);
+				sendmodB_Packets(&huart3,power,voltage,current,resistor);
 			}
 			if(newBuffer[1]=='R')
 			{
 				receiveAsciiPackets(newBuffer,packet);				
-				sendmodB_Packets(&huart3,power,voltage,current,charTofloat(packet[1]));
 			}
 		}	
 		
-		// C		
+		// C		 
 		if(rx_buffer[0] == 'C')
 		{	
+			HAL_GPIO_WritePin(GPIOB,GPIO_PIN_14,GPIO_PIN_SET);
 			sendmodC_Packets(&huart3,P,Vrms,Irms,pf,f,dcCur,dcVol);
 		}
+
 		
-		HAL_Delay(1);
-		HAL_NVIC_SystemReset();
+    //HAL_Delay(1);
+  	HAL_NVIC_SystemReset();
 
     /* USER CODE END WHILE */
 

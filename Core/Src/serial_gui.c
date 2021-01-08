@@ -202,22 +202,22 @@ void sendmodB_Packets(UART_HandleTypeDef *huart,float power,float voltage,float 
 			//her mesajin ikinci indeksine paket sayisi girildi  
 			if(strlen(sendmodBBuf[i]) < 10)
 				{
-					sendmodBpackets[i][1] = '0'; 
+					sendmodBpackets[i][2] = '0'; 
 					sprintf(sendmodlength,"%d",strlen(sendmodBBuf[i])+1); 
-					sendmodBpackets[i][2] = sendmodlength[0]; 
+					sendmodBpackets[i][3] = sendmodlength[0]; 
 				}
 				
 			if(strlen(sendmodBBuf[i]) >= 10)
 				{
 					sprintf(sendmodlength,"%d",strlen(sendmodBBuf[i])+1); 
-					sendmodBpackets[i][1] = sendmodlength[0]; 
-					sendmodBpackets[i][2] = sendmodlength[1]; 
+					sendmodBpackets[i][2] = sendmodlength[0]; 
+					sendmodBpackets[i][3] = sendmodlength[1]; 
 				}	
 				
-				sendmodBpackets[0][3] = 'P';
-				sendmodBpackets[1][3] = 'V';
-				sendmodBpackets[2][3] = 'I';
-				sendmodBpackets[3][3] = 'R';
+				sendmodBpackets[0][1] = 'P';
+				sendmodBpackets[1][1] = 'V';
+				sendmodBpackets[2][1] = 'I';
+				sendmodBpackets[3][1] = 'R';
 				
 			for(int j=0;j<=strlen(sendmodBBuf[i])-1;j++)
 				{
@@ -242,7 +242,7 @@ void sendmodB_Packets(UART_HandleTypeDef *huart,float power,float voltage,float 
 			crc =  0;
 		}
 		
-		for(int i=0;i<4;i++)
+		for(int i=0;i<3;i++)
 			{
 				for(int j=0;j<=strlen(sendmodBpackets[i])-1;j++)
 					{
