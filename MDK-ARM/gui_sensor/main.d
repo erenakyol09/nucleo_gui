@@ -31,6 +31,7 @@ gui_sensor\main.o: C:/Users/erena/STM32Cube/Repository/STM32Cube_FW_F7_V1.16.0/D
 gui_sensor\main.o: C:/Users/erena/STM32Cube/Repository/STM32Cube_FW_F7_V1.16.0/Drivers/STM32F7xx_HAL_Driver/Inc/stm32f7xx_hal_pwr_ex.h
 gui_sensor\main.o: C:/Users/erena/STM32Cube/Repository/STM32Cube_FW_F7_V1.16.0/Drivers/STM32F7xx_HAL_Driver/Inc/stm32f7xx_hal_uart.h
 gui_sensor\main.o: C:/Users/erena/STM32Cube/Repository/STM32Cube_FW_F7_V1.16.0/Drivers/STM32F7xx_HAL_Driver/Inc/stm32f7xx_hal_uart_ex.h
+gui_sensor\main.o: ../Core/Inc/dma.h
 gui_sensor\main.o: ../Core/Inc/usart.h
 gui_sensor\main.o: ../Core/Inc/gpio.h
 gui_sensor\main.o: ../Core/Inc/serial_gui.h

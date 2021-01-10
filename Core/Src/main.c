@@ -19,6 +19,7 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "dma.h"
 #include "usart.h"
 #include "gpio.h"
 
@@ -49,7 +50,6 @@
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
-
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -59,8 +59,8 @@ void SystemClock_Config(void);
 
 	int kk=0;
 	int jj=0;
-	char newBuffer[30];
-  char rx_buffer[50];
+	char newBuffer[20] = {0};
+  char rx_buffer[50] = {0};
 	int numDetec = 0;
 	int ll=0;
 	
@@ -85,6 +85,39 @@ void SystemClock_Config(void);
 	float current  = 0;
 	float resistor = 0;
 
+	
+	void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+{
+		// B 
+		for(int i=0;i<=20;i++)
+		{
+			if(rx_buffer[i] == 'B')
+			{
+				jj = i;
+				break;
+			}				
+		}
+		
+		ll = 8+10*charToint(rx_buffer[2+jj])+charToint(rx_buffer[3+jj]);
+		
+		for(int i=0;i<30;i++)
+		{
+			newBuffer[i] = rx_buffer[i+jj];
+			if(i==ll || i>=ll)
+				newBuffer[i] = 0;
+		}
+			if(newBuffer[1]=='P')
+			power    = power + 1;
+			if(newBuffer[1]=='V')
+	    voltage  = voltage + 1;
+			if(newBuffer[1]=='C')
+	    current  = current + 1 ;
+			if(newBuffer[1]=='X')
+			{
+				current  = current + 1 ;
+				voltage  = voltage + 1;
+			}
+}
 /* USER CODE END 0 */
 
 /**
@@ -115,83 +148,44 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_DMA_Init();
   MX_USART3_UART_Init();
   /* USER CODE BEGIN 2 */
-	
-
+	HAL_UART_Receive_DMA(&huart3, (uint8_t *)rx_buffer, 30);
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
-  {
-		
-		readString(&huart3,rx_buffer);
-		
-		// A 		
+  {		
+				// A 		
 		if(rx_buffer[0] == 'A')
 		{	
-			HAL_GPIO_WritePin(GPIOB,GPIO_PIN_0,GPIO_PIN_SET);
+			HAL_GPIO_TogglePin(GPIOB,GPIO_PIN_7);
 			sendmodA_Packets(&huart3,2,messagges);
 			rx_buffer[0] = '!';
-		}
-
-		
-		// B 
-		for(int i=0;i<=20;i++)
-		{
-			if(rx_buffer[i] == 'B')
-			{
-				jj = i;
-				break;
-			}				
-		}
-		
-		ll = 8+10*charToint(rx_buffer[2+jj])+charToint(rx_buffer[3+jj]);
-		
-		for(int i=0;i<30;i++)
-		{
-			newBuffer[i] = rx_buffer[i+jj];
-			if(i==ll || i>=ll)
-				newBuffer[i] = 0;
 		}
 		
 		if(newBuffer[0]=='B')
 		{
-			HAL_GPIO_WritePin(GPIOB,GPIO_PIN_7,GPIO_PIN_SET);
-			if(newBuffer[1]=='P')
-			{
-				receiveAsciiPackets(newBuffer,packet);				
-				sendmodB_Packets(&huart3,power,voltage,current,resistor);
-			}
-			
-			if(newBuffer[1]=='V')
-			{
-				receiveAsciiPackets(newBuffer,packet);				
-				sendmodB_Packets(&huart3,power,voltage,current,resistor);
-			}
-			if(newBuffer[1]=='I')
-			{
-				receiveAsciiPackets(newBuffer,packet);				
-				sendmodB_Packets(&huart3,power,voltage,current,resistor);
-			}
-			if(newBuffer[1]=='R')
-			{
-				receiveAsciiPackets(newBuffer,packet);				
-			}
+			HAL_GPIO_TogglePin(GPIOB,GPIO_PIN_7);
+			receiveAsciiPackets(newBuffer,packet);			
+			sendmodB_Packets(&huart3,power,voltage,current,resistor);
+			newBuffer[0] = '!';
+			newBuffer[1] = '!';
+			newBuffer[2] = '!';
+			newBuffer[3] = '!';			
 		}	
 		
 		// C		 
 		if(rx_buffer[0] == 'C')
 		{	
-			HAL_GPIO_WritePin(GPIOB,GPIO_PIN_14,GPIO_PIN_SET);
+			HAL_GPIO_TogglePin(GPIOB,GPIO_PIN_14);
 			sendmodC_Packets(&huart3,P,Vrms,Irms,pf,f,dcCur,dcVol);
+			HAL_GPIO_WritePin(GPIOB,GPIO_PIN_14,GPIO_PIN_RESET);
 		}
-
-		
-    //HAL_Delay(1);
-  	HAL_NVIC_SystemReset();
-
+			
+	
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */

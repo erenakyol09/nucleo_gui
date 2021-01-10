@@ -3,6 +3,7 @@
 "gui_sensor\serial_gui.o"
 "gui_sensor\main.o"
 "gui_sensor\gpio.o"
+"gui_sensor\dma.o"
 "gui_sensor\usart.o"
 "gui_sensor\stm32f7xx_it.o"
 "gui_sensor\stm32f7xx_hal_msp.o"

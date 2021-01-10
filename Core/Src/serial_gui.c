@@ -15,31 +15,30 @@
 
 #define buffer_size 50
 
-char controlBuffer[20] = "";
-char crcBuffer[4]      = "";
-char pData_gui[1]      = "";
+char controlBuffer[20] = {0};
+char crcBuffer[4]      = {0};
+char pData_gui[1]      = {0};
 
-char sendCrc[1]  = "";
-char sendCrc2[1] = "";
-char sendCrc3[1] = "";
-char sendCrc4[1] = "";
+char sendCrc[1]  = {0};
+char sendCrc2[1] = {0};
+char sendCrc3[1] = {0};
+char sendCrc4[1] = {0};
 
-char reciveCrc[1]  = "";
-char reciveCrc2[1] = "";
-char reciveCrc3[1] = "";
-char reciveCrc4[1] = "";
-
-
+char reciveCrc[1]  = {0};
+char reciveCrc2[1] = {0};
+char reciveCrc3[1] = {0};
+char reciveCrc4[1] = {0};
 	
-char sendmodABuf[20][100];
-char sendmodBBuf[20][50];
-char sendmodCBuf[20][50];
-char sendmodlength[2];
-char sendmodCpackets[20][50];
-char sendmodBpackets[20][50];
+char sendmodABuf[20][100] = {0};
+char sendmodBBuf[20][50]  = {0};
+char sendmodCBuf[20][50]  = {0};
+char sendmodlength[2]     = {0};
 
-float myBfloatValues[4][20];
-float myCfloatValues[7][20];
+char sendmodCpackets[20][50]  = {0};
+char sendmodBpackets[20][50]  = {0};
+
+float myBfloatValues[5][20]  = {0};
+float myCfloatValues[7][20]  = {0};
 
 
 
@@ -180,7 +179,7 @@ void sendmodB_Packets(UART_HandleTypeDef *huart,float power,float voltage,float 
 	myBfloatValues[0][0] = power;
 	myBfloatValues[1][0] = voltage;
 	myBfloatValues[2][0] = current;
-	myBfloatValues[3][0] = resistor;
+	myBfloatValues[4][0] = resistor;
 
 	
 	*sendCrc  = 0;
@@ -189,13 +188,16 @@ void sendmodB_Packets(UART_HandleTypeDef *huart,float power,float voltage,float 
 	*sendCrc4 = 0;
    crc = 0;
 	
-	for(int i=0;i<=3;i++)
+	for(int i=0;i<=4;i++)
 		{
 			sprintf(sendmodBBuf[i],"%.3f",myBfloatValues[i][0]);
+			if(i==3)
+			sprintf(sendmodBBuf[i],"%.3f,%.3f",myBfloatValues[1][0],myBfloatValues[2][0]);	
 		}
+	
 
 	
-	for(int i=0;i<=3;i++)
+	for(int i=0;i<=4;i++)
 		{
 			//her mesajin ilk indeksine B mod secimi girildi
 			sendmodBpackets[i][0] ='B';
@@ -217,7 +219,8 @@ void sendmodB_Packets(UART_HandleTypeDef *huart,float power,float voltage,float 
 				sendmodBpackets[0][1] = 'P';
 				sendmodBpackets[1][1] = 'V';
 				sendmodBpackets[2][1] = 'I';
-				sendmodBpackets[3][1] = 'R';
+				sendmodBpackets[3][1] = 'X';
+				sendmodBpackets[4][1] = 'R';
 				
 			for(int j=0;j<=strlen(sendmodBBuf[i])-1;j++)
 				{
@@ -242,10 +245,10 @@ void sendmodB_Packets(UART_HandleTypeDef *huart,float power,float voltage,float 
 			crc =  0;
 		}
 		
-		for(int i=0;i<3;i++)
+		for(int i=0;i<4;i++)
 			{
 				for(int j=0;j<=strlen(sendmodBpackets[i])-1;j++)
-					{
+					{	
 						writeByte(huart,sendmodBpackets[i][j]);
 					}		
 			}	
