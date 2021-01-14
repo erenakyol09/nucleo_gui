@@ -59,8 +59,8 @@ void SystemClock_Config(void);
 
 	int kk=0;
 	int jj=0;
-	char newBuffer[20] = {0};
-  char rx_buffer[50] = {0};
+	char newBuffer[20];
+  char rx_buffer[14];
 	int numDetec = 0;
 	int ll=0;
 	
@@ -71,13 +71,13 @@ void SystemClock_Config(void);
 	char messagges[10][100] = {"Model: Arm Cortex-M4","Version: stm32f767ZI"};
 	
 	// C komutu icin senaryo
-	float P     = 200;
-	float Vrms  = 220;
-	float Irms  = 1.2;  
-	float pf    = 1;
-	float f     = 50; 
-	float dcCur = 5;  
-	float dcVol = 30;
+	float P     = 1;
+	float Vrms  = 2;
+	float Irms  = 3;  
+	float pf    = 4;
+	float f     = 5; 
+	float dcCur = 6;  
+	float dcVol = 7;
 	
 	// B komutu icin senaryo
 	float power    = 0;
@@ -88,8 +88,8 @@ void SystemClock_Config(void);
 	
 	void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
-		// B 
-		for(int i=0;i<=20;i++)
+	
+		for(int i=0;i<14;i++)
 		{
 			if(rx_buffer[i] == 'B')
 			{
@@ -100,24 +100,24 @@ void SystemClock_Config(void);
 		
 		ll = 8+10*charToint(rx_buffer[2+jj])+charToint(rx_buffer[3+jj]);
 		
-		for(int i=0;i<30;i++)
+		for(int i=0;i<14;i++)
 		{
 			newBuffer[i] = rx_buffer[i+jj];
 			if(i==ll || i>=ll)
 				newBuffer[i] = 0;
 		}
-			if(newBuffer[1]=='P')
-			power    = power + 1;
-			if(newBuffer[1]=='V')
-	    voltage  = voltage + 1;
-			if(newBuffer[1]=='C')
-	    current  = current + 1 ;
-			if(newBuffer[1]=='X')
-			{
-				current  = current + 1 ;
-				voltage  = voltage + 1;
-			}
+		
+		for(int i=0;i<=13;i++)
+		rx_buffer[i] = 0;
 }
+
+
+void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
+{	
+	
+	
+}
+
 /* USER CODE END 0 */
 
 /**
@@ -151,41 +151,70 @@ int main(void)
   MX_DMA_Init();
   MX_USART3_UART_Init();
   /* USER CODE BEGIN 2 */
-	HAL_UART_Receive_DMA(&huart3, (uint8_t *)rx_buffer, 30);
+	HAL_UART_Receive_DMA(&huart3, (uint8_t *)rx_buffer, 14);
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {		
-				// A 		
+		
+		// A 		
 		if(rx_buffer[0] == 'A')
 		{	
-			HAL_GPIO_TogglePin(GPIOB,GPIO_PIN_7);
+			HAL_GPIO_TogglePin(GPIOB,GPIO_PIN_0);
 			sendmodA_Packets(&huart3,2,messagges);
 			rx_buffer[0] = '!';
 		}
 		
 		if(newBuffer[0]=='B')
 		{
+			power   = power   + 2;
+			current = current + 5;
+			voltage = voltage + 7; 
+						
+			
+			if(power== 30000)
+			{
+				power   = 0;
+				current = 0;
+				voltage = 0;
+			}		
+
 			HAL_GPIO_TogglePin(GPIOB,GPIO_PIN_7);
-			receiveAsciiPackets(newBuffer,packet);			
-			sendmodB_Packets(&huart3,power,voltage,current,resistor);
-			newBuffer[0] = '!';
-			newBuffer[1] = '!';
-			newBuffer[2] = '!';
-			newBuffer[3] = '!';			
+			receiveAsciiPackets(newBuffer,packet);							
+			sendmodB_Packets(&huart3,power,voltage,current,resistor);		
+			newBuffer[0]='!';		
 		}	
 		
 		// C		 
 		if(rx_buffer[0] == 'C')
-		{	
+		{				
+			/*P     = P     + 1;
+			Vrms  = Vrms  + 1;
+			Irms  = Irms  + 1;
+			pf    = pf    + 1;
+			f     = f     + 1;
+			dcCur = dcCur + 1;
+			dcVol = dcVol + 1;	*/
+			
+			if(P== 1000)
+			{
+				P     = 1 ;
+				Vrms  = 2 ;
+				Irms  = 3 ;
+				pf    = 4 ;
+				f     = 5 ;
+				dcCur = 6 ;
+				dcVol =	7 ;					
+			}	
+			
 			HAL_GPIO_TogglePin(GPIOB,GPIO_PIN_14);
 			sendmodC_Packets(&huart3,P,Vrms,Irms,pf,f,dcCur,dcVol);
 			HAL_GPIO_WritePin(GPIOB,GPIO_PIN_14,GPIO_PIN_RESET);
+			rx_buffer[0] = '!';
 		}
-			
-	
+		
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -207,7 +236,7 @@ void SystemClock_Config(void)
   /** Configure the main internal regulator output voltage
   */
   __HAL_RCC_PWR_CLK_ENABLE();
-  __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE1);
+  __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE3);
   /** Initializes the RCC Oscillators according to the specified parameters
   * in the RCC_OscInitTypeDef structure.
   */
@@ -217,16 +246,10 @@ void SystemClock_Config(void)
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
   RCC_OscInitStruct.PLL.PLLM = 8;
-  RCC_OscInitStruct.PLL.PLLN = 216;
+  RCC_OscInitStruct.PLL.PLLN = 128;
   RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
   RCC_OscInitStruct.PLL.PLLQ = 2;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /** Activate the Over-Drive mode
-  */
-  if (HAL_PWREx_EnableOverDrive() != HAL_OK)
   {
     Error_Handler();
   }
@@ -235,11 +258,11 @@ void SystemClock_Config(void)
   RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
                               |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
   RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
-  RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
-  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV4;
+  RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV2;
+  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
   RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV2;
 
-  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_7) != HAL_OK)
+  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK)
   {
     Error_Handler();
   }
