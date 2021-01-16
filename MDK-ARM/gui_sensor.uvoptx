@@ -165,7 +165,7 @@
         <Ww>
           <count>0</count>
           <WinNumber>2</WinNumber>
-          <ItemText>sendmodCpackets</ItemText>
+          <ItemText>rx_buffer2</ItemText>
         </Ww>
       </WatchWindow2>
       <Tracepoint>

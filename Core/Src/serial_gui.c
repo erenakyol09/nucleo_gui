@@ -190,7 +190,7 @@ void sendmodB_Packets(UART_HandleTypeDef *huart,float power,float voltage,float 
 	
 	for(int i=0;i<=3;i++)
 		{
-			sprintf(sendmodBBuf[i],"%.3f",myBfloatValues[i][0]);
+			sprintf(sendmodBBuf[i],"%.1f",myBfloatValues[i][0]);
 		}
 	
 	for(int i=0;i<=3;i++)
@@ -259,6 +259,53 @@ void sendmodB_Packets(UART_HandleTypeDef *huart,float power,float voltage,float 
 					}		
 			}	
 }	
+//guiye  B modundaki paketlerin mcuya gonderimi
+void sendmodB_mcuPackets(UART_HandleTypeDef *huart,float value,char mode)
+{
+	char string[20];
+	char packet[20];
+	*sendCrc  = 0;
+	*sendCrc2 = 0;
+	*sendCrc3 = 0;
+	*sendCrc4 = 0;
+   crc = 0;
+
+	sprintf(string,"%.1f",value);
+
+	//her mesajin ilk indeksine B mod secimi girildi
+	packet[0] ='B';
+	//her mesajin ikinci indeksine paket sayisi girildi 
+	packet[1] = mode;
+	packet[2] ='0';
+	packet[3] ='6';
+
+	for(int j=0;j<=strlen(string)-1;j++)
+		{
+			packet[j+4] = string[j];
+		}	
+		
+		for(int j=0;j<=strlen(string);j++)
+		{
+			crc = crc + packet[j+4];
+		}	
+		
+	sprintf(sendCrc ,"%x",crc & 0xF000);
+	sprintf(sendCrc2,"%x",crc & 0x0F00);
+	sprintf(sendCrc3,"%x",crc & 0x00F0);
+	sprintf(sendCrc4,"%x",crc & 0x000F);
+	
+	packet[4+strlen(string)] = sendCrc[0];
+	packet[5+strlen(string)] = sendCrc2[0];
+	packet[6+strlen(string)] = sendCrc3[0];
+	packet[7+strlen(string)] = sendCrc4[0];					
+	crc =  0;
+	
+	for(int j=0;j<=strlen(packet)-1;j++)
+	{	
+		writeByte(huart,packet[j]);	
+	}	
+
+}
 //guiye  C modundaki paketlerin gonderimi
 void sendmodC_Packets(UART_HandleTypeDef *huart,float P,float Vrms,float Irms,float pf,float f,float dcCur,float dcVol)
 {
@@ -347,7 +394,7 @@ float packetsTofloatValue(UART_HandleTypeDef* huart, char buffer[20],char packet
 	float value = 0;
 	char myPacket[20];
 	receiveAsciiPackets(buffer,packet);
-	for(int i=0;i<19;i++)
+	for(int i=0;i<6;i++)
 	{
 		myPacket[i] = packet[i+1];
 	}
@@ -401,50 +448,13 @@ float charTofloat(char x)
 }
 
 // string - > float
-float stringTofloat(char buffer[20])
+float stringTofloat(char buffer[7])
 {
+	float value;
 	
-	float	value  = 0;
-	float tValue = 0;
+	value = charTofloat(buffer[1])*1000 + charTofloat(buffer[2])*100 + charTofloat(buffer[3])*10 + charTofloat(buffer[4]) + charTofloat(buffer[6]) / 10;
 	
-	s = strlen(buffer);
-	
-	for(int k=0;k<=s;k++)
-	{
-		if(buffer[k] == '.')
-			{
-				a = k;
-			}
-	}
-
-	//tam sayi olma durumu							
-	if(a == 0)
-	{
-
-		for(int k=1;k<=s;k++)
-			{									
-				value = charTofloat(buffer[k-1]);
-				value = value * pow(10,s-k);
-				tValue = tValue + value;								  					
-			}
-	}
-	// tam sayi olmama durumu						
-	if(a != 0)
-	{
-		for(int k=1;k<=s-a-1;k++)
-			{									
-				value = charTofloat(buffer[k-1]);
-				value = value * pow(10,s-a-k-1);
-				tValue = tValue + value;								  					
-			}
-		for(int k=a+1;k<=s-1;k++)
-			{									
-				value = charTofloat(buffer[k]);
-				value = value / pow(10,k-a);
-				tValue = tValue + value;								  					
-			}
-	}
-	return tValue;
+	return value;
 }
 
 

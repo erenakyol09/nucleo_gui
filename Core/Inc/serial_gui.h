@@ -37,6 +37,9 @@ void sendmodA_Packets(UART_HandleTypeDef *huart,int number_message,char buffer[n
 //guiye  B modundaki paketlerin gonderimi
 void sendmodB_Packets(UART_HandleTypeDef *huart,float power,float voltage,float current,float resistor);
 
+//guiye  B modundaki paketlerin mcuya gonderimi
+void sendmodB_mcuPackets(UART_HandleTypeDef *huart,float value,char mode);
+
 //guiye  C modundaki paketlerin gonderimi
 void sendmodC_Packets(UART_HandleTypeDef *huart,float P,float Vrms,float Irms,float pf,float f,float dcCur,float dcVol);
 
@@ -50,7 +53,7 @@ int charToint(char x);
 float charTofloat(char x);
 
 // string - > float
-float stringTofloat(char buffer[20]);
+float stringTofloat(char buffer[7]);
 
 #endif 
 

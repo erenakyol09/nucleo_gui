@@ -61,6 +61,7 @@ void SystemClock_Config(void);
 	int jj=0;
 	char newBuffer[20];
   char rx_buffer[14];
+	char rx_buffer2[42];
 	int numDetec = 0;
 	int ll=0;
 	
@@ -150,8 +151,10 @@ int main(void)
   MX_GPIO_Init();
   MX_DMA_Init();
   MX_USART3_UART_Init();
+  MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
 	HAL_UART_Receive_DMA(&huart3, (uint8_t *)rx_buffer, 14);
+	HAL_UART_Receive_DMA(&huart1, (uint8_t *)rx_buffer2, 42);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -169,20 +172,44 @@ int main(void)
 		
 		if(newBuffer[0]=='B')
 		{
-			power   = power   + 2;
+			//power   = power   + 2;
 			current = current + 5;
 			voltage = voltage + 7; 
 						
-			
-			if(power== 30000)
+			power = stringTofloat(packet);
+			if(current== 30000)
 			{
-				power   = 0;
+				//power   = 0;
 				current = 0;
 				voltage = 0;
 			}		
-
+			
+			if(newBuffer[1] == 'P')
+			{	
+					sendmodB_mcuPackets(&huart1,power,'P');
+					HAL_GPIO_TogglePin(GPIOB,GPIO_PIN_14);
+			}
+			
+			if(newBuffer[1] == 'R')
+			{	
+					sendmodB_mcuPackets(&huart1,power,'R');
+					HAL_GPIO_TogglePin(GPIOB,GPIO_PIN_14);
+			}
+			
+			if(newBuffer[1] == 'V')
+			{	
+					sendmodB_mcuPackets(&huart1,power,'V');
+					HAL_GPIO_TogglePin(GPIOB,GPIO_PIN_14);
+			}
+			
+			if(newBuffer[1] == 'I')
+			{	
+					sendmodB_mcuPackets(&huart1,power,'I');
+					HAL_GPIO_TogglePin(GPIOB,GPIO_PIN_14);
+			}
+			
 			HAL_GPIO_TogglePin(GPIOB,GPIO_PIN_7);
-			receiveAsciiPackets(newBuffer,packet);							
+			receiveAsciiPackets(newBuffer,packet);			
 			sendmodB_Packets(&huart3,power,voltage,current,resistor);		
 			newBuffer[0]='!';		
 		}	
@@ -266,7 +293,8 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
-  PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_USART3;
+  PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_USART1|RCC_PERIPHCLK_USART3;
+  PeriphClkInitStruct.Usart1ClockSelection = RCC_USART1CLKSOURCE_PCLK2;
   PeriphClkInitStruct.Usart3ClockSelection = RCC_USART3CLKSOURCE_PCLK1;
   if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK)
   {
